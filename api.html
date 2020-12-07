@@ -130,6 +130,8 @@
                 objwData.data['size'] = container[1]
                 objwData.data['price'] = container[2]
                 objwData.data['building_id'] = currTableId
+                objwData.data['leave'] = true
+
                 dataHolder.push(objwData)
             })
             console.log(dataHolder, "dataHolder")
@@ -152,14 +154,23 @@
         }
 
         function buildTable(data) {
-            console.log(data, "the data in building table")
             var tables = document.getElementsByClassName('building-tables')
-            var addedRows = document.getElementsByClassName('addedRow')
-            Array.from(addedRows).forEach((row) => {
-                row.remove()
-            })
+            if (!data[0].data.leave) {
+                var addedRows = document.getElementsByClassName('addedRow')
+                Array.from(addedRows).forEach((row) => {
+                    row.remove()
+                })
+            }
 
             Array.from(tables).forEach((table) => {
+                if (table.id === data[0].data.building_id) {
+                    // table.innerHTML = ""
+                    console.log(table, "=table to clear")
+                    let clearRows = table.querySelectorAll(".addedRow")
+                    for (var i = 0; i < clearRows.length; ++i) {
+                        clearRows[i].remove();
+                    }
+                }
                 let rowLength = 0;
                 for (var i = 0; i < data.length; i++) {
                     if (table.id === data[i].data.building_id) {
@@ -174,14 +185,15 @@
                         rowLength++
                     }
                 }
-                if (rowLength === 0) {
-                    var row = table.insertRow(-1);
-                    row.className = "addedRow"
-                    var cell1 = row.insertCell(0);
-                    cell1.innerHTML = "No Data to display";
-                    cell1.colSpan = 3
+                if (!data[0].data.leave) {
+                    if (rowLength === 0) {
+                        var row = table.insertRow(-1);
+                        row.className = "addedRow"
+                        var cell1 = row.insertCell(0);
+                        cell1.innerHTML = "No Data to display";
+                        cell1.colSpan = 3
+                    }
                 }
-
             })
         }
         function searchBuildingVals(value, data) {
