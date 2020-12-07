@@ -107,19 +107,33 @@
             }
         }
 
-        let nameOrders = document.getElementsByClassName("name-order")
-        let sizeOrders = document.getElementsByClassName("size-order")
-        let priceOrders = document.getElementsByClassName("price-order")
+        // let nameOrders = document.getElementsByClassName("name-order")
+        // let sizeOrders = document.getElementsByClassName("size-order")
+        // let priceOrders = document.getElementsByClassName("price-order")
         // Array.from(nameOrders).forEach(orderArrow => orderArrow.addEventListener("click", orderTable))
 
         const orderData = (e) => {
-            console.log('order table was called')
-            console.log(e.target.id, "event.target")
+            let dataHolder = []
             let targetArr = e.target.id.split('-')
             let currTableId = targetArr[targetArr.length - 1]
-            console.log(currTableId, "currtabId")
-            let currentTable = document.getElementById(currTableId)
-            console.log(currentTable, "currentTable")
+            let currentTable = document.getElementById(currTableId).querySelectorAll(".addedRow");
+            let containerArr = []
+            currentTable.forEach(row => {
+                let myArr = [row.children[0].innerText, row.children[1].innerText, row.children[2].innerText]
+                containerArr.push(myArr)
+            })
+
+            containerArr.sort((a, b) => a[0] > b[0] ? 1 : -1)
+            containerArr.forEach(container => {
+                let objwData = { data: {} }
+                objwData.data['name'] = container[0]
+                objwData.data['size'] = container[1]
+                objwData.data['price'] = container[2]
+                objwData.data['building_id'] = currTableId
+                dataHolder.push(objwData)
+            })
+            console.log(dataHolder, "dataHolder")
+            buildTable(dataHolder)
         }
 
         function filterBuildings(data) {
@@ -138,6 +152,7 @@
         }
 
         function buildTable(data) {
+            console.log(data, "the data in building table")
             var tables = document.getElementsByClassName('building-tables')
             var addedRows = document.getElementsByClassName('addedRow')
             Array.from(addedRows).forEach((row) => {
