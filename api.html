@@ -69,7 +69,6 @@
                         buildingsSearchInput.addEventListener('keyup', function () {
                             let value = this.value
                             let newData = searchBuildingVals(value, buildings)
-                            //rewrite this function or create another
                             filterBuildings(newData)
                         })
 
@@ -98,14 +97,23 @@
                                 <th id="building-name" colspan="3" scope="colgroup">${data[i].data.name}</th>
                                 </tr>
                                 <tr class="bg-info">
-                                <th>Name</th>
-                                <th>Size</th>
-                                <th>Price</th>
+                                <th>Name <span id="name-order-${data[i].id}" class="name-order" data-column="name" data-order="desc" onclick="orderData()">&#9650</span></th>
+                                <th>Size <span id="size-order-${data[i].id}" class="size-order" data-column="size" data-order="desc" onclick="orderData()">&#9650</span></th>
+                                <th>Price <span id="price-order-${data[i].id}" class="price-order" data-column="price" data-order="desc" onclick="orderData()">&#9650</span></th>
                                 </tr>               
                             </table >
                             <br>`
                 table.innerHTML += row
             }
+        }
+
+        let nameOrders = document.getElementsByClassName("name-order")
+        let sizeOrders = document.getElementsByClassName("size-order")
+        let priceOrders = document.getElementsByClassName("price-order")
+        // Array.from(nameOrders).forEach(orderArrow => orderArrow.addEventListener("click", orderTable))
+
+        const orderData = () => {
+            console.log('order table was called')
         }
 
         function filterBuildings(data) {
@@ -175,7 +183,7 @@
                 let name = data[i].data.name.toLowerCase()
                 let price = data[i].data.price
                 let size = data[i].data.size
-                if (name.includes(value) || price.includes(value) || size.includes(value)) {
+                if (name.includes(value) || price.startsWith(value) || size.startsWith(value)) {
                     filtered.push(data[i])
                 }
             }
