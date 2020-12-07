@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <div class="row">
+        <div class="col">
+            <div class="card card-body">
+                <input id="search-input" class="form-control" type="text">
+            </div>
+        </div>
+    </div>
+
+    <div id="myTable">
+    </div>
+
+
+    <div id="buildingsTable"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-firestore.js"></script>
+
+    <script>
+        const config = {
+            apiKey: "AIzaSyBm8kA5uom4fvW57yj9Wr-Hyy-syT6L1Ng",
+            authDomain: "firemap-28d9b.firebaseapp.com",
+            databaseURL: "https://firemap-28d9b.firebaseio.com",
+            projectId: "firemap-28d9b",
+            storageBucket: "firemap-28d9b.appspot.com",
+            messagingSenderId: "59903099050",
+            appId: "1:59903099050:web:bcb9b5431e95f6b77e90d3",
+        };
+
+        firebase.initializeApp(config);
+        const db = firebase.firestore();
+
+
+        db.collection("buildings")
+            .get()
+            .then((snapshot) => {
+                var buildings = snapshot.docs.map((building) => ({
+                    id: building.id,
+                    data: building.data(),
+                }));
+                return buildBuildingsTable(buildings)
+
+            }).then(
+                db.collection("Units")
+                    .get()
+                    .then((snapshot) => {
+                        var newUnits = snapshot.docs.map((item) => ({
+                            id: item.id,
+                            data: item.data(),
+                        }));
+                        let allUnits = newUnits.filter(unit => !unit.data.isWholeBuilding)
+                        buildTable(allUnits)
+                        let input = document.getElementById("search-input")
+                        input.addEventListener('keyup', function () {
+                            let value = this.value
+                            let newData = searchVals(value, allUnits)
+                            buildTable(newData)
+                        })
+                        return console.log("finished")
+                    })
+            )
+
+
+        function buildBuildingsTable(data) {
+            var table = document.getElementById('buildingsTable')
+            table.innerHTML = ""
+            for (var i = 0; i < data.length; i++) {
+                var row = `
+                            <table id=${data[i].id}
+                            class="table table-striped building-tables">
+                            <caption>${data[i].data.seo}</caption>
+                                <tr>
+                                <th id="building-name" colspan="3" scope="colgroup">${data[i].data.name}</th>
+                                </tr>
+                                <tr class="bg-info">
+                                <th>Name</th>
+                                <th>Size</th>
+                                <th>Price</th>
+                                </tr>               
+                            </table >
+                            <br>`
+                table.innerHTML += row
+            }
+        }
+
+        function buildTable(data) {
+            var tables = document.getElementsByClassName('building-tables')
+            var addedRows = document.getElementsByClassName('addedRow')
+            Array.from(addedRows).forEach((row) => {
+                row.remove()
+            })
+
+            Array.from(tables).forEach((table) => {
+                let rowLength = 0;
+                for (var i = 0; i < data.length; i++) {
+                    if (table.id === data[i].data.building_id) {
+                        var row = table.insertRow(-1);
+                        row.className = "addedRow"
+                        var cell1 = row.insertCell(0);
+                        var cell2 = row.insertCell(1);
+                        var cell3 = row.insertCell(2)
+                        cell1.innerHTML = data[i].data.name;
+                        cell2.innerHTML = data[i].data.size;
+                        cell3.innerHTML = data[i].data.price;
+                        rowLength++
+                    }
+                }
+                console.log(rowLength, "addedRows")
+                if (rowLength === 0) {
+                    var row = table.insertRow(-1);
+                    row.className = "addedRow"
+                    var cell1 = row.insertCell(0);
+                    cell1.innerHTML = "No Data to display";
+                    cell1.colSpan = 3
+                }
+
+            })
+        }
+
+        function searchVals(value, data) {
+            let filtered = []
+            for (let i = 0; i < data.length; i++) {
+                value = value.toLowerCase()
+                let name = data[i].data.name.toLowerCase()
+                let price = data[i].data.price
+                let size = data[i].data.size
+                if (name.includes(value) || price.includes(value) || size.includes(value)) {
+                    filtered.push(data[i])
+                }
+            }
+            return filtered
+        }
+    </script>
+</body>
+
+</html>
