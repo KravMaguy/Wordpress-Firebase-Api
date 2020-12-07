@@ -97,7 +97,7 @@
                                 <th id="building-name" colspan="3" scope="colgroup">${data[i].data.name}</th>
                                 </tr>
                                 <tr class="bg-info">
-                                <th>Name <span id="name-order-${data[i].id}" class="name-order" data-column="name" data-order="desc" onclick="orderData()">&#9650</span></th>
+                                <th>Name <span id="name-order-${data[i].id}" class="name-order" data-column="name" data-order="desc" onclick="orderData(event)">&#9650</span></th>
                                 <th>Size <span id="size-order-${data[i].id}" class="size-order" data-column="size" data-order="desc" onclick="orderData()">&#9650</span></th>
                                 <th>Price <span id="price-order-${data[i].id}" class="price-order" data-column="price" data-order="desc" onclick="orderData()">&#9650</span></th>
                                 </tr>               
@@ -112,8 +112,14 @@
         let priceOrders = document.getElementsByClassName("price-order")
         // Array.from(nameOrders).forEach(orderArrow => orderArrow.addEventListener("click", orderTable))
 
-        const orderData = () => {
+        const orderData = (e) => {
             console.log('order table was called')
+            console.log(e.target.id, "event.target")
+            let targetArr = e.target.id.split('-')
+            let currTableId = targetArr[targetArr.length - 1]
+            console.log(currTableId, "currtabId")
+            let currentTable = document.getElementById(currTableId)
+            console.log(currentTable, "currentTable")
         }
 
         function filterBuildings(data) {
