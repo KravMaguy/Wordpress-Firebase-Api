@@ -116,7 +116,9 @@
             let tables = document.getElementsByClassName('building-tables')
             Array.from(tables).forEach((table) => {
                 if (ids.indexOf(table.id) === -1) {
-                    table.remove()
+                    table.style.display = "none"
+                } else {
+                    table.style.display = "inline"
                 }
             })
         }
