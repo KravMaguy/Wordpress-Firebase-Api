@@ -85,7 +85,8 @@
                             let newData = searchUnitVals(value, state.units)
                             buildTable(newData)
                         })
-                        return console.log("finished")
+                        return
+                        // return console.log("finished")
                     })
             })
 
@@ -115,17 +116,37 @@
         }
 
         const calcRent = (e) => {
-            console.log("calcrent called")
-            console.log(e.target, "target")
+            // console.log("calcrent called")
+            // console.log(e.target, "target")
+            let rentRate = e.target.getAttribute('data-rent-calculation');
             let targetArr = e.target.id.split('-')
             let currRentCalcId = targetArr[targetArr.length - 1]
             console.log(currRentCalcId, "calcId")
             let currentTableRows = document.getElementById(currRentCalcId).querySelectorAll(".addedRow");
-            console.log(currentTableRows, "currentTableRows")
-            currentTableRows.forEach(row => {
-                let rsqftyr = (row.children[2].innerText / row.children[1].innerText).toFixed(2)
-                row.children[2].innerText = rsqftyr
-            })
+            // console.log(currentTableRows, "currentTableRows")
+            if (rentRate === "monthly") {
+                e.target.setAttribute("data-rent-calculation", "rsqft/yr");
+                e.target.innerHTML = 'rsqft/yr'
+                currentTableRows.forEach(row => {
+                    let rsqftyr = ((row.children[2].innerText / row.children[1].innerText) * 12).toFixed(2)
+                    row.children[2].innerText = rsqftyr
+                    let id = row.getAttribute('id')
+                    let adjustedUnit = state.units.find(unit => unit.id === id)
+                    adjustedUnit.data.price = rsqftyr
+                })
+            } else if (rentRate === 'rsqft/yr') {
+                e.target.setAttribute("data-rent-calculation", "monthly");
+                e.target.innerHTML = 'Monthly'
+                currentTableRows.forEach(row => {
+                    let monthly = ((row.children[2].innerText * row.children[1].innerText) / 12).toFixed()
+                    row.children[2].innerText = monthly
+                    let id = row.getAttribute('id')
+                    let adjustedUnit = state.units.find(unit => unit.id === id)
+                    adjustedUnit.data.price = monthly
+                })
+            }
+
+            console.log(state, "state")
 
         }
 
@@ -136,38 +157,35 @@
             let currentTable = document.getElementById(currTableId).querySelectorAll(".addedRow");
             let containerArr = []
             currentTable.forEach(row => {
-                let myArr = [row.children[0].innerText, Number(row.children[1].innerText), Number(row.children[2].innerText)]
+                // console.log(row, "=in the order Data the row is")
+                let id = row.getAttribute('id')
+                // console.log(id, "the id in order data")
+                let myArr = [row.children[0].innerText, Number(row.children[1].innerText), Number(row.children[2].innerText), id]
                 containerArr.push(myArr)
             })
 
 
             let currentOrder = e.target.getAttribute('data-order');
-            console.log(currentOrder, "order is currentl")
+            // console.log(currentOrder, "order is currentl")
             if (currentOrder === "desc") {
                 e.target.setAttribute("data-order", "ascen");
-                console.log(e.target.innerHtml, "inner htmo")
+                // console.log(e.target.innerHtml, "inner htmo")
                 e.target.innerHTML = '&#9660'
                 if (e.target.className === "name-order") {
-                    console.log('name reached')
                     containerArr.sort((a, b) => a[0] > b[0] ? 1 : -1)
                 } else if (e.target.className === "price-order") {
-                    console.log('price reached')
                     containerArr.sort((a, b) => a[1] > b[1] ? 1 : -1)
                 } else if (e.target.className === "size-order") {
-                    console.log('size reached')
                     containerArr.sort((a, b) => a[2] > b[2] ? 1 : -1)
                 }
             } else if (currentOrder === "ascen") {
                 e.target.innerHTML = '&#9650'
                 e.target.setAttribute("data-order", "desc");
                 if (e.target.className === "name-order") {
-                    console.log('name reached')
                     containerArr.sort((a, b) => a[0] < b[0] ? 1 : -1)
                 } else if (e.target.className === "price-order") {
-                    console.log('price reached')
                     containerArr.sort((a, b) => a[1] < b[1] ? 1 : -1)
                 } else if (e.target.className === "size-order") {
-                    console.log('size reached')
                     containerArr.sort((a, b) => a[2] < b[2] ? 1 : -1)
                 }
             }
@@ -179,18 +197,17 @@
                 objwData.data['price'] = container[2]
                 objwData.data['building_id'] = currTableId
                 objwData.data['leave'] = true
-
+                objwData.id = container[3]
                 dataHolder.push(objwData)
             })
-            console.log(dataHolder, "dataHolder")
             buildTable(dataHolder)
         }
 
         function filterBuildings(data) {
-            console.log(data, "data in filter buildings")
+            // console.log(data, "data in filter buildings")
             let ids = []
             data.forEach(building => ids.push(building.id))
-            console.log(ids, "ids")
+            // console.log(ids, "ids")
             let tables = document.getElementsByClassName('building-tables')
             Array.from(tables).forEach((table) => {
                 if (ids.indexOf(table.id) === -1) {
@@ -202,9 +219,9 @@
         }
 
         function buildTable(data) {
-            console.log(data, "= buildTable run the data")
+            // console.log(data, "= buildTable run the data")
             var tables = document.getElementsByClassName('building-tables')
-            console.log(data.length, "length")
+            // console.log(data.length, "length")
             if (data.length > 0) {
                 if (!data[0].data.leave) {
                     let addedRows = document.getElementsByClassName('addedRow')
@@ -237,29 +254,29 @@
                             rowLength++
                         }
                     }
-                    if (!data[0].data.leave) {
-                        if (rowLength === 0) {
-                            var row = table.insertRow(-1);
-                            row.className = "emptyRow"
-                            var cell1 = row.insertCell(0);
-                            cell1.innerHTML = "No Data to display";
-                            cell1.colSpan = 3
-                        }
-                    }
+                    // if (!data[0].data.leave) {
+                    //     if (rowLength === 0) {
+                    //         var row = table.insertRow(-1);
+                    //         row.className = "emptyRow"
+                    //         var cell1 = row.insertCell(0);
+                    //         cell1.innerHTML = "No Data to display";
+                    //         cell1.colSpan = 3
+                    //     }
+                    // }
                 })
             } else {
                 let addedRows = document.getElementsByClassName('addedRow')
                 Array.from(addedRows).forEach((row) => {
                     row.remove()
                 })
-                let tables = document.getElementsByClassName('table')
-                Array.from(tables).forEach((table) => {
-                    var row = table.insertRow(-1);
-                    row.className = "emptyRow"
-                    var cell1 = row.insertCell(0);
-                    cell1.innerHTML = "No Data to display";
-                    cell1.colSpan = 3
-                })
+                // let tables = document.getElementsByClassName('table')
+                // Array.from(tables).forEach((table) => {
+                //     var row = table.insertRow(-1);
+                //     row.className = "emptyRow"
+                //     var cell1 = row.insertCell(0);
+                //     cell1.innerHTML = "No Data to display";
+                //     cell1.colSpan = 3
+                // })
 
             }
         }
