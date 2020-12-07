@@ -46,6 +46,9 @@
         firebase.initializeApp(config);
         const db = firebase.firestore();
 
+        let state = {
+            units: []
+        }
 
         db.collection("buildings")
             .get()
@@ -54,6 +57,7 @@
                     id: building.id,
                     data: building.data(),
                 }));
+                buildings = buildings.reverse()
                 buildBuildingsTable(buildings)
                 return buildings
             }).then((buildings) => {
@@ -64,7 +68,7 @@
                             id: item.id,
                             data: item.data(),
                         }));
-
+                        // console.log(newUnits, "newUnits")
                         let buildingsSearchInput = document.getElementById("search-input-buildings")
                         buildingsSearchInput.addEventListener('keyup', function () {
                             let value = this.value
@@ -75,9 +79,10 @@
                         let allUnits = newUnits.filter(unit => !unit.data.isWholeBuilding)
                         buildTable(allUnits)
                         let unitsSearchInput = document.getElementById("search-input-units")
+                        state.units = allUnits
                         unitsSearchInput.addEventListener('keyup', function () {
                             let value = this.value
-                            let newData = searchUnitVals(value, allUnits)
+                            let newData = searchUnitVals(value, state.units)
                             buildTable(newData)
                         })
                         return console.log("finished")
@@ -92,19 +97,36 @@
                 var row = `
                             <table id=${data[i].id}
                             class="table table-striped building-tables">
-                            <caption>${data[i].data.seo}</caption>
+                            <caption class="caption">${data[i].data.seo}</caption>
                                 <tr>
-                                <th id="building-name" colspan="3" scope="colgroup">${data[i].data.name}</th>
+                                <th id="building-name">${data[i].data.name}</th>
+                                <th><a href="https://www.google.com/maps/dir/Current+Location/${data[i].data.location.latitude},${data[i].data.location.longitude}" target="_blank">Directions</a></th>
+                                <th><button id="calc-rent-${data[i].id}" data-rent-calculation="monthly" class="btn-sm" onClick="calcRent(event)">Monthly</button></th>
                                 </tr>
                                 <tr class="bg-info">
                                 <th>Name <span id="name-order-${data[i].id}" class="name-order" data-order="desc" onclick="orderData(event)">&#9650</span></th>
-                                <th>Size <span id="size-order-${data[i].id}" class="size-order" data-order="desc" onclick="orderData(event)">&#9650</span></th>
+                                <th>Size <span class="tool" data-tip="the leaseable square feet plus a portion of the building's common space.">RSF</span><span id="size-order-${data[i].id}" class="size-order" data-order="desc" onclick="orderData(event)">&#9650</span></th>
                                 <th>Price <span id="price-order-${data[i].id}" class="price-order" data-order="desc" onclick="orderData(event)">&#9650</span></th>
                                 </tr>               
                             </table >
                             <br>`
                 table.innerHTML += row
             }
+        }
+
+        const calcRent = (e) => {
+            console.log("calcrent called")
+            console.log(e.target, "target")
+            let targetArr = e.target.id.split('-')
+            let currRentCalcId = targetArr[targetArr.length - 1]
+            console.log(currRentCalcId, "calcId")
+            let currentTableRows = document.getElementById(currRentCalcId).querySelectorAll(".addedRow");
+            console.log(currentTableRows, "currentTableRows")
+            currentTableRows.forEach(row => {
+                let rsqftyr = (row.children[2].innerText / row.children[1].innerText).toFixed(2)
+                row.children[2].innerText = rsqftyr
+            })
+
         }
 
         const orderData = (e) => {
@@ -180,45 +202,66 @@
         }
 
         function buildTable(data) {
+            console.log(data, "= buildTable run the data")
             var tables = document.getElementsByClassName('building-tables')
-            if (!data[0].data.leave) {
-                var addedRows = document.getElementsByClassName('addedRow')
+            console.log(data.length, "length")
+            if (data.length > 0) {
+                if (!data[0].data.leave) {
+                    let addedRows = document.getElementsByClassName('addedRow')
+                    Array.from(addedRows).forEach((row) => {
+                        row.remove()
+                    })
+                }
+
+
+                Array.from(tables).forEach((table) => {
+                    if (table.id === data[0].data.building_id) {
+                        let clearRows = table.querySelectorAll(".addedRow")
+                        for (var i = 0; i < clearRows.length; ++i) {
+                            clearRows[i].remove();
+                        }
+                    }
+                    let rowLength = 0;
+                    for (var i = 0; i < data.length; i++) {
+                        if (table.id === data[i].data.building_id) {
+                            var row = table.insertRow(-1);
+                            row.className = "addedRow"
+                            row.setAttribute('id', data[i].id);
+
+                            var cell1 = row.insertCell(0);
+                            var cell2 = row.insertCell(1);
+                            var cell3 = row.insertCell(2)
+                            cell1.innerHTML = data[i].data.name;
+                            cell2.innerHTML = data[i].data.size;
+                            cell3.innerHTML = data[i].data.price;
+                            rowLength++
+                        }
+                    }
+                    if (!data[0].data.leave) {
+                        if (rowLength === 0) {
+                            var row = table.insertRow(-1);
+                            row.className = "emptyRow"
+                            var cell1 = row.insertCell(0);
+                            cell1.innerHTML = "No Data to display";
+                            cell1.colSpan = 3
+                        }
+                    }
+                })
+            } else {
+                let addedRows = document.getElementsByClassName('addedRow')
                 Array.from(addedRows).forEach((row) => {
                     row.remove()
                 })
-            }
+                let tables = document.getElementsByClassName('table')
+                Array.from(tables).forEach((table) => {
+                    var row = table.insertRow(-1);
+                    row.className = "emptyRow"
+                    var cell1 = row.insertCell(0);
+                    cell1.innerHTML = "No Data to display";
+                    cell1.colSpan = 3
+                })
 
-            Array.from(tables).forEach((table) => {
-                if (table.id === data[0].data.building_id) {
-                    let clearRows = table.querySelectorAll(".addedRow")
-                    for (var i = 0; i < clearRows.length; ++i) {
-                        clearRows[i].remove();
-                    }
-                }
-                let rowLength = 0;
-                for (var i = 0; i < data.length; i++) {
-                    if (table.id === data[i].data.building_id) {
-                        var row = table.insertRow(-1);
-                        row.className = "addedRow"
-                        var cell1 = row.insertCell(0);
-                        var cell2 = row.insertCell(1);
-                        var cell3 = row.insertCell(2)
-                        cell1.innerHTML = data[i].data.name;
-                        cell2.innerHTML = data[i].data.size;
-                        cell3.innerHTML = data[i].data.price;
-                        rowLength++
-                    }
-                }
-                if (!data[0].data.leave) {
-                    if (rowLength === 0) {
-                        var row = table.insertRow(-1);
-                        row.className = "addedRow"
-                        var cell1 = row.insertCell(0);
-                        cell1.innerHTML = "No Data to display";
-                        cell1.colSpan = 3
-                    }
-                }
-            })
+            }
         }
         function searchBuildingVals(value, data) {
             let filtered = []
@@ -234,6 +277,7 @@
         }
 
         function searchUnitVals(value, data) {
+            console.log('searchUnitVals called 272')
             let filtered = []
             for (let i = 0; i < data.length; i++) {
                 value = value.toLowerCase()
