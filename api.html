@@ -2,13 +2,26 @@
 <html>
 
 <body>
+
     <div class="row">
         <div class="col">
             <div class="card card-body">
-                <input id="search-input" class="form-control" type="text">
+                <input id="search-input-buildings" class="form-control" type="text"
+                    placeholder="search buildings by name or description">
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card card-body">
+                <input id="search-input-units" class="form-control" type="text"
+                    placeholder="search units by price, size, or name">
+            </div>
+        </div>
+    </div>
+
+
 
     <div id="myTable">
     </div>
@@ -41,9 +54,9 @@
                     id: building.id,
                     data: building.data(),
                 }));
-                return buildBuildingsTable(buildings)
-
-            }).then(
+                buildBuildingsTable(buildings)
+                return buildings
+            }).then((buildings) => {
                 db.collection("Units")
                     .get()
                     .then((snapshot) => {
@@ -51,17 +64,26 @@
                             id: item.id,
                             data: item.data(),
                         }));
+
+                        let buildingsSearchInput = document.getElementById("search-input-buildings")
+                        buildingsSearchInput.addEventListener('keyup', function () {
+                            let value = this.value
+                            let newData = searchBuildingVals(value, buildings)
+                            //rewrite this function or create another
+                            filterBuildings(newData)
+                        })
+
                         let allUnits = newUnits.filter(unit => !unit.data.isWholeBuilding)
                         buildTable(allUnits)
-                        let input = document.getElementById("search-input")
-                        input.addEventListener('keyup', function () {
+                        let unitsSearchInput = document.getElementById("search-input-units")
+                        unitsSearchInput.addEventListener('keyup', function () {
                             let value = this.value
-                            let newData = searchVals(value, allUnits)
+                            let newData = searchUnitVals(value, allUnits)
                             buildTable(newData)
                         })
                         return console.log("finished")
                     })
-            )
+            })
 
 
         function buildBuildingsTable(data) {
@@ -86,6 +108,19 @@
             }
         }
 
+        function filterBuildings(data) {
+            console.log(data, "data in filter buildings")
+            let ids = []
+            data.forEach(building => ids.push(building.id))
+            console.log(ids, "ids")
+            let tables = document.getElementsByClassName('building-tables')
+            Array.from(tables).forEach((table) => {
+                if (ids.indexOf(table.id) === -1) {
+                    table.remove()
+                }
+            })
+        }
+
         function buildTable(data) {
             var tables = document.getElementsByClassName('building-tables')
             var addedRows = document.getElementsByClassName('addedRow')
@@ -108,7 +143,6 @@
                         rowLength++
                     }
                 }
-                console.log(rowLength, "addedRows")
                 if (rowLength === 0) {
                     var row = table.insertRow(-1);
                     row.className = "addedRow"
@@ -119,8 +153,20 @@
 
             })
         }
+        function searchBuildingVals(value, data) {
+            let filtered = []
+            for (let i = 0; i < data.length; i++) {
+                value = value.toLowerCase()
+                let name = data[i].data.name.toLowerCase()
+                let seo = data[i].data.seo.toLowerCase()
+                if (name.includes(value) || seo.includes(value)) {
+                    filtered.push(data[i])
+                }
+            }
+            return filtered
+        }
 
-        function searchVals(value, data) {
+        function searchUnitVals(value, data) {
             let filtered = []
             for (let i = 0; i < data.length; i++) {
                 value = value.toLowerCase()
