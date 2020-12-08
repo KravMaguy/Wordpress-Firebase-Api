@@ -47,7 +47,8 @@
         const db = firebase.firestore();
 
         let state = {
-            units: []
+            units: [],
+            wholeBuildings: []
         }
 
         db.collection("buildings")
@@ -75,7 +76,10 @@
                             let newData = searchBuildingVals(value, buildings)
                             filterBuildings(newData)
                         })
-
+                        console.log(newUnits, "all the units")
+                        let wholeBuildings = newUnits.filter(unit => unit.data.isWholeBuilding)
+                        console.log(wholeBuildings, "wholeBuildings in the async")
+                        state.wholeBuildings = [...wholeBuildings]
                         let allUnits = newUnits.filter(unit => !unit.data.isWholeBuilding)
                         buildTable(allUnits)
                         let unitsSearchInput = document.getElementById("search-input-units")
@@ -92,6 +96,9 @@
 
 
         function buildBuildingsTable(data) {
+            console.log(data, 'Building buildings...')
+            console.log(state, "state")
+            console.log(state.wholeBuildings.length, "wholeBuildings")
             var table = document.getElementById('buildingsTable')
             table.innerHTML = ""
             for (var i = 0; i < data.length; i++) {
@@ -100,7 +107,7 @@
                             class="table table-striped building-tables">
                             <caption class="caption">${data[i].data.seo}</caption>
                                 <tr>
-                                <th id="building-name">${data[i].data.name}</th>
+                                <th id="building-name"><a href="${data[i].data.fileUrl}" target="_blank">${data[i].data.name}</a></th>
                                 <th><a href="https://www.google.com/maps/dir/Current+Location/${data[i].data.location.latitude},${data[i].data.location.longitude}" target="_blank">Directions</a></th>
                                 <th><button id="calc-rent-${data[i].id}" data-rent-calculation="monthly" class="btn-sm" onClick="calcRent(event)">Monthly</button></th>
                                 </tr>
