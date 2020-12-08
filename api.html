@@ -75,7 +75,6 @@
                             let newData = searchBuildingVals(value, buildings)
                             filterBuildings(newData)
                         })
-                        console.log(newUnits, "all the units")
                         let wholeBuildings = newUnits.filter(unit => unit.data.isWholeBuilding)
                         state.wholeBuildings = wholeBuildings
                         let allUnits = newUnits.filter(unit => !unit.data.isWholeBuilding)
@@ -95,18 +94,19 @@
 
 
         function buildBuildingsTable(data) {
-            console.log(data, 'Building buildings...')
-            console.log(state, "state")
-            console.log(state.wholeBuildings.length, "wholeBuildings")
+            // console.log(data, 'data Building buildings...')
+            // console.log(state.wholeBuildings, "state wholebuild")
+
             var table = document.getElementById('buildingsTable')
             table.innerHTML = ""
             for (var i = 0; i < data.length; i++) {
+                let theStateUnit = state.wholeBuildings.find(building => building.data.building_id === data[i].id)
                 var row = `
                             <table id=${data[i].id}
                             class="table table-striped building-tables">
                             <caption class="caption">${data[i].data.seo}</caption>
                                 <tr>
-                                <th id="building-name"><a href="${data[i].data.fileUrl}" target="_blank">${data[i].data.name}</a></th>
+                                <th id="building-name"><a href="${theStateUnit.data.fileUrl}" target="_blank">${data[i].data.name}</a></th>
                                 <th><a href="https://www.google.com/maps/dir/Current+Location/${data[i].data.location.latitude},${data[i].data.location.longitude}" target="_blank">Directions</a></th>
                                 <th><button id="calc-rent-${data[i].id}" data-rent-calculation="monthly" class="btn-sm" onClick="calcRent(event)">Monthly</button></th>
                                 </tr>
@@ -127,7 +127,7 @@
             let rentRate = e.target.getAttribute('data-rent-calculation');
             let targetArr = e.target.id.split('-')
             let currRentCalcId = targetArr[targetArr.length - 1]
-            console.log(currRentCalcId, "calcId")
+            // console.log(currRentCalcId, "calcId")
             let currentTableRows = document.getElementById(currRentCalcId).querySelectorAll(".addedRow");
             // console.log(currentTableRows, "currentTableRows")
             if (rentRate === "monthly") {
@@ -152,7 +152,7 @@
                 })
             }
 
-            console.log(state, "state")
+            // console.log(state, "state")
 
         }
 
@@ -165,8 +165,10 @@
             currentTable.forEach(row => {
                 // console.log(row, "=in the order Data the row is")
                 let id = row.getAttribute('id')
+                let fileUrl = row.getAttribute('link')
+                console.log(fileUrl, "the file Url 169")
                 // console.log(id, "the id in order data")
-                let myArr = [row.children[0].innerText, parseFloat(row.children[1].innerText), parseFloat(row.children[2].innerText), id]
+                let myArr = [row.children[0].innerText, row.children[1].innerText, row.children[2].innerText, id, fileUrl]
                 containerArr.push(myArr)
             })
 
@@ -246,6 +248,7 @@
                 objwData.data['building_id'] = currTableId
                 objwData.data['leave'] = true
                 objwData.id = container[3]
+                objwData.data['fileUrl'] = container[4]
                 dataHolder.push(objwData)
             })
             buildTable(dataHolder)
@@ -267,9 +270,8 @@
         }
 
         function buildTable(data) {
-            // console.log(data, "= buildTable run the data")
+            console.log(data, "=buildTable run with data")
             var tables = document.getElementsByClassName('building-tables')
-            // console.log(data.length, "length")
             if (data.length > 0) {
                 if (!data[0].data.leave) {
                     let addedRows = document.getElementsByClassName('addedRow')
@@ -292,11 +294,11 @@
                             var row = table.insertRow(-1);
                             row.className = "addedRow"
                             row.setAttribute('id', data[i].id);
-
+                            row.setAttribute('link', data[i].data.fileUrl)
                             var cell1 = row.insertCell(0);
                             var cell2 = row.insertCell(1);
                             var cell3 = row.insertCell(2)
-                            cell1.innerHTML = data[i].data.name;
+                            cell1.innerHTML = `<a href=${data[i].data.fileUrl} target="_blank">${data[i].data.name}</a>`
                             cell2.innerHTML = data[i].data.size;
                             cell3.innerHTML = data[i].data.price;
                             rowLength++
