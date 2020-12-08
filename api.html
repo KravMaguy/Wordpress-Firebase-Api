@@ -201,15 +201,15 @@
                     // containerArr.sort(function (a, b) { return a[0] - b[0]; });
                 } else if (e.target.className === "price-order") {
                     // containerArr.sort((a, b) => a[1] > b[1] ? 1 : -1)
-                    // containerArr.sort(function (a, b) { return Number(a[1]) - Number(b[1]); });
-                    customSort(containerArr, 2, currentOrder)
-                    console.log(containerArr, "containerArr")
+                    containerArr.sort(function (a, b) { return Number(a[2]) - Number(b[2]); });
+                    // customSort(containerArr, 2, currentOrder)
+                    // console.log(containerArr, "containerArr")
 
                 } else if (e.target.className === "size-order") {
                     // containerArr.sort((a, b) => a[2] > b[2] ? 1 : -1)
-                    // containerArr.sort(function (a, b) { return Number(a[2]) - Number(b[2]); });
-                    customSort(containerArr, 1, currentOrder)
-                    console.log(containerArr, "containerArr")
+                    containerArr.sort(function (a, b) { return Number(a[1]) - Number(b[1]); });
+                    // customSort(containerArr, 1, currentOrder)
+                    // console.log(containerArr, "containerArr")
                 }
             } else if (currentOrder === "ascen") {
                 e.target.innerHTML = '&#9650'
@@ -220,15 +220,15 @@
 
                 } else if (e.target.className === "price-order") {
                     // containerArr.sort((a, b) => a[1] < b[1] ? 1 : -1)
-                    // containerArr.sort(function (a, b) { return Number(b[1]) - Number(a[1]); });
-                    customSort(containerArr, 2, currentOrder)
-                    console.log(containerArr, "containerArr")
+                    containerArr.sort(function (a, b) { return Number(b[2]) - Number(a[2]); });
+                    // customSort(containerArr, 2, currentOrder)
+                    // console.log(containerArr, "containerArr")
 
                 } else if (e.target.className === "size-order") {
                     // containerArr.sort((a, b) => a[2] < b[2] ? 1 : -1)
-                    // containerArr.sort(function (a, b) { return Number(b[2]) - Number(a[2]); });
-                    customSort(containerArr, 1, currentOrder)
-                    console.log(containerArr, "containerArr")
+                    containerArr.sort(function (a, b) { return Number(b[1]) - Number(a[1]); });
+                    // customSort(containerArr, 1, currentOrder)
+                    // console.log(containerArr, "containerArr")
                 }
             }
 
