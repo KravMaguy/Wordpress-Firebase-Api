@@ -59,7 +59,6 @@
                     data: building.data(),
                 }));
                 buildings = buildings.reverse()
-                buildBuildingsTable(buildings)
                 return buildings
             }).then((buildings) => {
                 db.collection("Units")
@@ -78,9 +77,9 @@
                         })
                         console.log(newUnits, "all the units")
                         let wholeBuildings = newUnits.filter(unit => unit.data.isWholeBuilding)
-                        console.log(wholeBuildings, "wholeBuildings in the async")
-                        state.wholeBuildings = [...wholeBuildings]
+                        state.wholeBuildings = wholeBuildings
                         let allUnits = newUnits.filter(unit => !unit.data.isWholeBuilding)
+                        buildBuildingsTable(buildings)
                         buildTable(allUnits)
                         let unitsSearchInput = document.getElementById("search-input-units")
                         state.units = allUnits
