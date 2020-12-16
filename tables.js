@@ -48,6 +48,7 @@ db.collection("buildings")
 function buildBuildingsTable(data) {
     // console.log(data, 'data Building buildings...')
     // console.log(state.wholeBuildings, "state wholebuild")
+    document.getElementById("hideLoad").style.display = "none";
 
     var table = document.getElementById('buildingsTable')
     table.innerHTML = ""
