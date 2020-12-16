@@ -1,25 +1,146 @@
 <!DOCTYPE html>
 <html>
 
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <style>
+        body {
+            margin: 30px 8px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        #search-input-units {
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
+
+        .caption {
+            background: #A5B3C3;
+            color: #ffffff;
+            font-weight: 500;
+            text-align: center;
+            text-transform: capitalize;
+        }
+
+        .building-tables {
+            -webkit-box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.40);
+            box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.40);
+        }
+
+        div.card.card-body {
+            box-shadow: none !important;
+        }
+
+        input.form-control {
+            font-size: x-large
+        }
+
+
+        .tool {
+            cursor: help;
+            position: relative;
+            text-decoration: underline;
+            color: purple;
+        }
+
+
+        /*== common styles for both parts of tool tip ==*/
+        .tool::before,
+        .tool::after {
+            left: 50%;
+            opacity: 0;
+            position: absolute;
+            z-index: -100;
+        }
+
+        .tool:hover::before,
+        .tool:focus::before,
+        .tool:hover::after,
+        .tool:focus::after {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            z-index: 100;
+        }
+
+
+        /*== pointer tip ==*/
+        .tool::before {
+            border-style: solid;
+            border-width: 1em 0.75em 0 0.75em;
+            border-color: #3E474F transparent transparent transparent;
+            bottom: 100%;
+            content: "";
+            margin-left: -0.5em;
+            transition: all .65s cubic-bezier(.84, -0.18, .31, 1.26), opacity .65s .5s;
+            transform: scale(.6) translateY(-90%);
+        }
+
+        .tool:hover::before,
+        .tool:focus::before {
+            transition: all .65s cubic-bezier(.84, -0.18, .31, 1.26) .2s;
+        }
+
+
+        /*== speech bubble ==*/
+        .tool::after {
+            background: #3E474F;
+            border-radius: .25em;
+            bottom: 180%;
+            color: #EDEFF0;
+            content: attr(data-tip);
+            margin-left: -8.75em;
+            padding: 1em;
+            transition: all .65s cubic-bezier(.84, -0.18, .31, 1.26) .2s;
+            transform: scale(.6) translateY(50%);
+            width: 17.5em;
+        }
+
+        .tool:hover::after,
+        .tool:focus::after {
+            transition: all .65s cubic-bezier(.84, -0.18, .31, 1.26);
+        }
+
+        @media (max-width: 760px) {
+            .tool::after {
+                font-size: .75em;
+                margin-left: -5em;
+                width: 10em;
+            }
+        }
+    </style>
+
+
+</head>
+
 <body>
 
-    <div class="row">
-        <div class="col">
-            <div class="card card-body">
-                <input id="search-input-buildings" class="form-control" type="text"
-                    placeholder="search buildings by name or description">
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col">
+                <div class="card card-body">
+                    <input id="search-input-buildings" class="form-control" type="text"
+                        placeholder="search buildings by name or description">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="card card-body">
+                    <input id="search-input-units" class="form-control" type="text"
+                        placeholder="search units by price, size, or name">
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col">
-            <div class="card card-body">
-                <input id="search-input-units" class="form-control" type="text"
-                    placeholder="search units by price, size, or name">
-            </div>
-        </div>
-    </div>
 
 
 
@@ -45,318 +166,8 @@
 
         firebase.initializeApp(config);
         const db = firebase.firestore();
-
-        let state = {
-            units: [],
-            wholeBuildings: []
-        }
-
-        db.collection("buildings")
-            .get()
-            .then((snapshot) => {
-                var buildings = snapshot.docs.map((building) => ({
-                    id: building.id,
-                    data: building.data(),
-                }));
-                buildings = buildings.reverse()
-                return buildings
-            }).then((buildings) => {
-                db.collection("Units")
-                    .get()
-                    .then((snapshot) => {
-                        var newUnits = snapshot.docs.map((item) => ({
-                            id: item.id,
-                            data: item.data(),
-                        }));
-                        // console.log(newUnits, "newUnits")
-                        let buildingsSearchInput = document.getElementById("search-input-buildings")
-                        buildingsSearchInput.addEventListener('keyup', function () {
-                            let value = this.value
-                            let newData = searchBuildingVals(value, buildings)
-                            filterBuildings(newData)
-                        })
-                        let wholeBuildings = newUnits.filter(unit => unit.data.isWholeBuilding)
-                        state.wholeBuildings = wholeBuildings
-                        let allUnits = newUnits.filter(unit => !unit.data.isWholeBuilding)
-                        buildBuildingsTable(buildings)
-                        buildTable(allUnits)
-                        let unitsSearchInput = document.getElementById("search-input-units")
-                        state.units = allUnits
-                        unitsSearchInput.addEventListener('keyup', function () {
-                            let value = this.value
-                            let newData = searchUnitVals(value, state.units)
-                            buildTable(newData)
-                        })
-                        return
-                        // return console.log("finished")
-                    })
-            })
-
-
-        function buildBuildingsTable(data) {
-            // console.log(data, 'data Building buildings...')
-            // console.log(state.wholeBuildings, "state wholebuild")
-
-            var table = document.getElementById('buildingsTable')
-            table.innerHTML = ""
-            for (var i = 0; i < data.length; i++) {
-                let theStateUnit = state.wholeBuildings.find(building => building.data.building_id === data[i].id)
-                var row = `
-                            <table id=${data[i].id}
-                            class="table table-striped building-tables">
-                            <caption class="caption">${data[i].data.seo}</caption>
-                                <tr>
-                                <th id="building-name"><a href="${theStateUnit.data.fileUrl}" target="_blank">${data[i].data.name}</a></th>
-                                <th><a href="https://www.google.com/maps/dir/Current+Location/${data[i].data.location.latitude},${data[i].data.location.longitude}" target="_blank">Directions</a></th>
-                                <th><button id="calc-rent-${data[i].id}" data-rent-calculation="monthly" class="btn-sm" onClick="calcRent(event)">Monthly</button></th>
-                                </tr>
-                                <tr class="bg-info">
-                                <th>Name <span id="name-order-${data[i].id}" class="name-order" data-order="desc" onclick="orderData(event)">&#9650</span></th>
-                                <th>Size <span class="tool" data-tip="the leaseable square feet plus a portion of the building's common space.">RSF</span><span id="size-order-${data[i].id}" class="size-order" data-order="desc" onclick="orderData(event)">&#9650</span></th>
-                                <th>Price <span id="price-order-${data[i].id}" class="price-order" data-order="desc" onclick="orderData(event)">&#9650</span></th>
-                                </tr>               
-                            </table >
-                            <br>`
-                table.innerHTML += row
-            }
-        }
-
-        const calcRent = (e) => {
-            // console.log("calcrent called")
-            // console.log(e.target, "target")
-            let rentRate = e.target.getAttribute('data-rent-calculation');
-            let targetArr = e.target.id.split('-')
-            let currRentCalcId = targetArr[targetArr.length - 1]
-            // console.log(currRentCalcId, "calcId")
-            let currentTableRows = document.getElementById(currRentCalcId).querySelectorAll(".addedRow");
-            // console.log(currentTableRows, "currentTableRows")
-            if (rentRate === "monthly") {
-                e.target.setAttribute("data-rent-calculation", "rsqft/yr");
-                e.target.innerHTML = 'rsqft/yr'
-                currentTableRows.forEach(row => {
-                    let rsqftyr = ((row.children[2].innerText / row.children[1].innerText) * 12).toFixed(2)
-                    row.children[2].innerText = rsqftyr
-                    let id = row.getAttribute('id')
-                    let adjustedUnit = state.units.find(unit => unit.id === id)
-                    adjustedUnit.data.price = rsqftyr
-                })
-            } else if (rentRate === 'rsqft/yr') {
-                e.target.setAttribute("data-rent-calculation", "monthly");
-                e.target.innerHTML = 'Monthly'
-                currentTableRows.forEach(row => {
-                    let monthly = ((row.children[2].innerText * row.children[1].innerText) / 12).toFixed()
-                    row.children[2].innerText = monthly
-                    let id = row.getAttribute('id')
-                    let adjustedUnit = state.units.find(unit => unit.id === id)
-                    adjustedUnit.data.price = monthly
-                })
-            }
-
-            // console.log(state, "state")
-
-        }
-
-        const orderData = (e) => {
-            let dataHolder = []
-            let targetArr = e.target.id.split('-')
-            let currTableId = targetArr[targetArr.length - 1]
-            let currentTable = document.getElementById(currTableId).querySelectorAll(".addedRow");
-            let containerArr = []
-            currentTable.forEach(row => {
-                // console.log(row, "=in the order Data the row is")
-                let id = row.getAttribute('id')
-                let fileUrl = row.getAttribute('link')
-                console.log(fileUrl, "the file Url 169")
-                // console.log(id, "the id in order data")
-                let myArr = [row.children[0].innerText, row.children[1].innerText, row.children[2].innerText, id, fileUrl]
-                containerArr.push(myArr)
-            })
-
-            const customSort = (arr, idx, order) => {
-                let temp;
-                if (order === "ascen") {
-                    for (let i = 0; i < arr.length - 1; i++) {
-                        for (let j = i + 1; j < arr.length; j++) {
-                            if (arr[i][idx] < arr[j][idx]) {
-                                temp = arr[i][idx]
-                                arr[i][idx] = arr[j][idx]
-                                arr[j][idx] = temp
-                            }
-                        }
-                    }
-                } else {
-                    for (let i = 0; i < arr.length - 1; i++) {
-                        for (let j = i + 1; j < arr.length; j++) {
-                            if (arr[i][idx] > arr[j][idx]) {
-                                temp = arr[i][idx]
-                                arr[i][idx] = arr[j][idx]
-                                arr[j][idx] = temp
-                            }
-                        }
-                    }
-                }
-                return arr
-            }
-
-            let currentOrder = e.target.getAttribute('data-order');
-            // console.log(currentOrder, "order is currentl")
-            if (currentOrder === "desc") {
-                e.target.setAttribute("data-order", "ascen");
-                // console.log(e.target.innerHtml, "inner htmo")
-                e.target.innerHTML = '&#9660'
-                if (e.target.className === "name-order") {
-                    containerArr.sort((a, b) => a[0] > b[0] ? 1 : -1)
-                    // containerArr.sort(function (a, b) { return a[0] - b[0]; });
-                } else if (e.target.className === "price-order") {
-                    // containerArr.sort((a, b) => a[1] > b[1] ? 1 : -1)
-                    containerArr.sort(function (a, b) { return Number(a[2]) - Number(b[2]); });
-                    // customSort(containerArr, 2, currentOrder)
-                    // console.log(containerArr, "containerArr")
-
-                } else if (e.target.className === "size-order") {
-                    // containerArr.sort((a, b) => a[2] > b[2] ? 1 : -1)
-                    containerArr.sort(function (a, b) { return Number(a[1]) - Number(b[1]); });
-                    // customSort(containerArr, 1, currentOrder)
-                    // console.log(containerArr, "containerArr")
-                }
-            } else if (currentOrder === "ascen") {
-                e.target.innerHTML = '&#9650'
-                e.target.setAttribute("data-order", "desc");
-                if (e.target.className === "name-order") {
-                    containerArr.sort((a, b) => a[0] < b[0] ? 1 : -1)
-                    // containerArr.sort(function (a, b) { return b[0] - a[0];);
-
-                } else if (e.target.className === "price-order") {
-                    // containerArr.sort((a, b) => a[1] < b[1] ? 1 : -1)
-                    containerArr.sort(function (a, b) { return Number(b[2]) - Number(a[2]); });
-                    // customSort(containerArr, 2, currentOrder)
-                    // console.log(containerArr, "containerArr")
-
-                } else if (e.target.className === "size-order") {
-                    // containerArr.sort((a, b) => a[2] < b[2] ? 1 : -1)
-                    containerArr.sort(function (a, b) { return Number(b[1]) - Number(a[1]); });
-                    // customSort(containerArr, 1, currentOrder)
-                    // console.log(containerArr, "containerArr")
-                }
-            }
-
-            containerArr.forEach(container => {
-                let objwData = { data: {} }
-                objwData.data['name'] = container[0]
-                objwData.data['size'] = container[1]
-                objwData.data['price'] = container[2]
-                objwData.data['building_id'] = currTableId
-                objwData.data['leave'] = true
-                objwData.id = container[3]
-                objwData.data['fileUrl'] = container[4]
-                dataHolder.push(objwData)
-            })
-            buildTable(dataHolder)
-        }
-
-        function filterBuildings(data) {
-            // console.log(data, "data in filter buildings")
-            let ids = []
-            data.forEach(building => ids.push(building.id))
-            // console.log(ids, "ids")
-            let tables = document.getElementsByClassName('building-tables')
-            Array.from(tables).forEach((table) => {
-                if (ids.indexOf(table.id) === -1) {
-                    table.style.display = "none"
-                } else {
-                    table.style.display = "table"
-                }
-            })
-        }
-
-        function buildTable(data) {
-            console.log(data, "=buildTable run with data")
-            var tables = document.getElementsByClassName('building-tables')
-            if (data.length > 0) {
-                if (!data[0].data.leave) {
-                    let addedRows = document.getElementsByClassName('addedRow')
-                    Array.from(addedRows).forEach((row) => {
-                        row.remove()
-                    })
-                }
-
-
-                Array.from(tables).forEach((table) => {
-                    if (table.id === data[0].data.building_id) {
-                        let clearRows = table.querySelectorAll(".addedRow")
-                        for (var i = 0; i < clearRows.length; ++i) {
-                            clearRows[i].remove();
-                        }
-                    }
-                    let rowLength = 0;
-                    for (var i = 0; i < data.length; i++) {
-                        if (table.id === data[i].data.building_id) {
-                            var row = table.insertRow(-1);
-                            row.className = "addedRow"
-                            row.setAttribute('id', data[i].id);
-                            row.setAttribute('link', data[i].data.fileUrl)
-                            var cell1 = row.insertCell(0);
-                            var cell2 = row.insertCell(1);
-                            var cell3 = row.insertCell(2)
-                            cell1.innerHTML = `<a href=${data[i].data.fileUrl} target="_blank">${data[i].data.name}</a>`
-                            cell2.innerHTML = data[i].data.size;
-                            cell3.innerHTML = data[i].data.price;
-                            rowLength++
-                        }
-                    }
-                    // if (!data[0].data.leave) {
-                    //     if (rowLength === 0) {
-                    //         var row = table.insertRow(-1);
-                    //         row.className = "emptyRow"
-                    //         var cell1 = row.insertCell(0);
-                    //         cell1.innerHTML = "No Data to display";
-                    //         cell1.colSpan = 3
-                    //     }
-                    // }
-                })
-            } else {
-                let addedRows = document.getElementsByClassName('addedRow')
-                Array.from(addedRows).forEach((row) => {
-                    row.remove()
-                })
-                // let tables = document.getElementsByClassName('table')
-                // Array.from(tables).forEach((table) => {
-                //     var row = table.insertRow(-1);
-                //     row.className = "emptyRow"
-                //     var cell1 = row.insertCell(0);
-                //     cell1.innerHTML = "No Data to display";
-                //     cell1.colSpan = 3
-                // })
-
-            }
-        }
-        function searchBuildingVals(value, data) {
-            let filtered = []
-            for (let i = 0; i < data.length; i++) {
-                value = value.toLowerCase()
-                let name = data[i].data.name.toLowerCase()
-                let seo = data[i].data.seo.toLowerCase()
-                if (name.includes(value) || seo.includes(value)) {
-                    filtered.push(data[i])
-                }
-            }
-            return filtered
-        }
-
-        function searchUnitVals(value, data) {
-            console.log('searchUnitVals called 272')
-            let filtered = []
-            for (let i = 0; i < data.length; i++) {
-                value = value.toLowerCase()
-                let name = data[i].data.name.toLowerCase()
-                let price = data[i].data.price
-                let size = data[i].data.size
-                if (name.includes(value) || price.startsWith(value) || size.startsWith(value)) {
-                    filtered.push(data[i])
-                }
-            }
-            return filtered
-        }
+    </script>
+    <script src="./tables.js">
     </script>
 </body>
 
