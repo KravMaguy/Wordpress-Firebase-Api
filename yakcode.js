@@ -3,46 +3,67 @@ let state = {
     wholeBuildings: []
 }
 
-db.collection("buildings")
-    .get()
-    .then((snapshot) => {
-        var buildings = snapshot.docs.map((building) => ({
+const getBuildings = async () => {
+    const collection = await db.collection("buildings");
+    const snapshot = await collection.get();
+    return snapshot.docs
+        .map((building) => ({
             id: building.id,
             data: building.data(),
-        }));
-        buildings = buildings.reverse()
-        return buildings
-    }).then((buildings) => {
-        db.collection("Units")
-            .get()
-            .then((snapshot) => {
-                var newUnits = snapshot.docs.map((item) => ({
-                    id: item.id,
-                    data: item.data(),
-                }));
-                // console.log(newUnits, "newUnits")
-                let buildingsSearchInput = document.getElementById("search-input-buildings")
-                buildingsSearchInput.addEventListener('keyup', function () {
-                    let value = this.value
-                    let newData = searchBuildingVals(value, buildings)
-                    filterBuildings(newData)
-                })
-                let wholeBuildings = newUnits.filter(unit => unit.data.isWholeBuilding)
-                state.wholeBuildings = wholeBuildings
-                let allUnits = newUnits.filter(unit => !unit.data.isWholeBuilding)
-                buildBuildingsTable(buildings)
-                buildTable(allUnits)
-                let unitsSearchInput = document.getElementById("search-input-units")
-                state.units = allUnits
-                unitsSearchInput.addEventListener('keyup', function () {
-                    let value = this.value
-                    let newData = searchUnitVals(value, state.units)
-                    buildTable(newData)
-                })
-                return
-                // return console.log("finished")
-            })
-    })
+        }))
+};
+
+const getUnits = async () => {
+    const collection = await db.collection("Units");
+    const snapshot = await collection.get();
+    return snapshot.docs.map((unit) => ({
+        id: unit.id,
+        data: unit.data(),
+    }));
+};
+
+async function init() {
+    try {
+        const buildings = await getBuildings();
+        const units = await getUnits();
+
+        // the rest of your code here
+
+        // console.log(units, "units")
+        let buildingsSearchInput = document.getElementById("search-input-buildings")
+        buildingsSearchInput.addEventListener('keyup', function () {
+            let value = this.value
+            let newData = searchBuildingVals(value, buildings)
+            filterBuildings(newData)
+        })
+
+        let wholeBuildings = units.filter(unit => unit.data.isWholeBuilding)
+
+        state.wholeBuildings = wholeBuildings
+        buildBuildingsTable(buildings);
+
+        let allUnits = units.filter(unit => !unit.data.isWholeBuilding)
+
+        buildTable(allUnits)
+
+        let unitsSearchInput = document.getElementById("search-input-units")
+        state.units = allUnits
+        unitsSearchInput.addEventListener('keyup', function () {
+            let value = this.value
+            let newData = searchUnitVals(value, state.units)
+            buildTable(newData)
+        })
+        console.log(buildings, "buildings")
+        console.log(units, "units")
+        return { buildings, units }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+init().then((res) => console.log(res));
+
+
 
 
 function buildBuildingsTable(data) {
