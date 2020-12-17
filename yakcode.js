@@ -26,26 +26,19 @@ async function init() {
     try {
         const buildings = await getBuildings();
         const units = await getUnits();
+        let wholeBuildings = units.filter(unit => unit.data.isWholeBuilding)
+        // state.wholeBuildings = wholeBuildings
+        buildBuildingsTable(buildings, wholeBuildings);
 
-        // the rest of your code here
+        let allUnits = units.filter(unit => !unit.data.isWholeBuilding)
+        buildTable(allUnits)
 
-        // console.log(units, "units")
         let buildingsSearchInput = document.getElementById("search-input-buildings")
         buildingsSearchInput.addEventListener('keyup', function () {
             let value = this.value
             let newData = searchBuildingVals(value, buildings)
             filterBuildings(newData)
         })
-
-        let wholeBuildings = units.filter(unit => unit.data.isWholeBuilding)
-
-        state.wholeBuildings = wholeBuildings
-        buildBuildingsTable(buildings);
-
-        let allUnits = units.filter(unit => !unit.data.isWholeBuilding)
-
-        buildTable(allUnits)
-
         let unitsSearchInput = document.getElementById("search-input-units")
         state.units = allUnits
         unitsSearchInput.addEventListener('keyup', function () {
@@ -63,10 +56,11 @@ async function init() {
 
 init().then((res) => console.log(res));
 
+// async function init() {
 
 
 
-function buildBuildingsTable(data) {
+function buildBuildingsTable(data, wholeBuildings) {
     // console.log(data, 'data Building buildings...')
     // console.log(state.wholeBuildings, "state wholebuild")
     console.log(state, "state")
@@ -75,7 +69,7 @@ function buildBuildingsTable(data) {
     var table = document.getElementById('buildingsTable')
     table.innerHTML = ""
     for (var i = 0; i < data.length; i++) {
-        let theStateUnit = state.wholeBuildings.find(building => building.data.building_id === data[i].id)
+        let theStateUnit = wholeBuildings.find(building => building.data.building_id === data[i].id)
         var row = `
                     <table id=${data[i].id}
                     class="table table-striped building-tables">
