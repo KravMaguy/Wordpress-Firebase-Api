@@ -215,11 +215,12 @@ const orderData = (e) => {
         objwData.data['size'] = container[1]
         objwData.data['price'] = container[2]
         objwData.data['building_id'] = currTableId
-        objwData.data['leave'] = true
+//         objwData.data['leave'] = true
         objwData.id = container[3]
         objwData.data['fileUrl'] = container[4]
         dataHolder.push(objwData)
     })
+    dataHolder["leave"]=true
     buildTable(dataHolder)
 }
 
@@ -242,7 +243,7 @@ function buildTable(data) {
     console.log(data, "=buildTable run with data")
     var tables = document.getElementsByClassName('building-tables')
     if (data.length > 0) {
-        if (!data[0].data.leave) {
+        if (!data.hasOwnProperty('leave')) {
             let addedRows = document.getElementsByClassName('addedRow')
             Array.from(addedRows).forEach((row) => {
                 row.remove()
